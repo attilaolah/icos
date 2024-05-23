@@ -1,74 +1,49 @@
-use crate::spherical::Norm;
 use crate::val::{sqrt, Angle, Val};
 
 /// The golden ratio.
 fn phi() -> Val {
     // (1 + sqrt(5)) / 2
-    sqrt(5.into()).add(1.into()).div(2.into())
+    sqrt(5.into()).add(&1.into()).div(&2.into())
 }
 
 /// Angle at the origin between two vertices of an edge.
-fn alpha() -> Angle {
-    // let a = 1 / cir()
-    // acos((a^2 - 1) / 2)
-    cir().rec().pow(2.into()).sub(1.into()).div(2.into()).acos()
+pub fn alpha() -> Angle {
+    // acos(sqrt(5) / 5)
+    sqrt(5.into()).div(&5.into()).acos()
 }
 
 /// Inradius:
 /// radius of the inscribed squere of an icosehadron with edge length 1.
 pub fn inr() -> Val {
     // phi^2 / (2 * sqrt(3))
-    phi().pow(2.into()).div(sqrt(3.into())).div(2.into())
+    phi().pow(&2.into()).div(&sqrt(3.into())).div(&2.into())
 }
 
 /// Circumradius:
 /// Radius of the sicrumsphere of an icosahedron with edge length 1.
 pub fn cir() -> Val {
     // sqrt(phi^2 + 1) / 2
-    sqrt(phi().pow(2.into()).add(1.into())).div(2.into())
+    sqrt(phi().pow(&2.into()).add(&1.into())).div(&2.into())
 }
 
 /// Midradius:
 /// Radius of the midsphere of an icosahedron with edge length 1.
 pub fn mid() -> Val {
     // phi / 2
-    phi().div(2.into())
-}
-
-pub fn coords() -> Vec<Norm> {
-    let turn = Angle::turn();
-    let half = turn.clone().div(2.into());
-    let fifth = turn.clone().div(5.into());
-
-    let top = Norm::zero();
-    let row_1 = top.clone().south(alpha());
-    let row_2 = row_1.clone().south(half.clone());
-
-    vec![
-        top.clone(),
-        row_1.clone(),
-        row_1.clone().east(fifth.clone()),
-        row_1.clone().east(fifth.clone().mul(2.into())),
-        row_1.clone().east(fifth.clone().mul(3.into())),
-        row_1.clone().east(fifth.clone().mul(4.into())),
-        row_2.clone(),
-        row_2.clone().east(fifth.clone()),
-        row_2.clone().east(fifth.clone().mul(2.into())),
-        row_2.clone().east(fifth.clone().mul(3.into())),
-        row_2.clone().east(fifth.clone().mul(4.into())),
-        top.south(half),
-    ]
+    phi().div(&2.into())
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::spherical::Norm;
     use approx::assert_relative_eq;
     use num_traits::ToPrimitive;
+    use std::f64::consts::PI;
 
     #[test]
     fn test_phi() {
-        assert_relative_eq!(phi().to_f64().unwrap(), 1.618033988749895);
+        assert_relative_eq!(phi().to_f64().unwrap(), 1.6180339887498950);
     }
 
     #[test]
@@ -87,8 +62,18 @@ mod test {
     }
 
     #[test]
-    fn test_coords() {
-        let c = coords();
-        assert_eq!(c.len(), 12);
+    fn test_alpha() {
+        assert_relative_eq!(alpha().to_f64().unwrap() * 180.0 / PI, 63.43494882292201);
+    }
+
+    #[test]
+    fn test_alpha_distance() {
+        assert_relative_eq!(
+            Norm::zero()
+                .distance_to(Norm::zero().south(&alpha()))
+                .to_f64()
+                .unwrap(),
+            cir().rec().to_f64().unwrap()
+        );
     }
 }
