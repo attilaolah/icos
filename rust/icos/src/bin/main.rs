@@ -8,7 +8,7 @@ fn main() {
     let fifth_turn = Angle::turn().div(&5.into());
 
     let mut t: Val = 1.into();
-    let mut adjust = t.clone().div(&2.into());
+    let mut adjust = t.clone();
 
     loop {
         let by = alpha().mul(&t).div(&2.into());
@@ -29,12 +29,12 @@ fn main() {
             delta.to_f64().unwrap(),
         );
 
+        adjust = adjust.div(&2.into());
         t = if delta.to_f64().unwrap() > 0.0 {
             t.add(&adjust)
         } else {
             t.sub(&adjust)
         };
-        adjust = adjust.div(&2.into());
 
         step += 1;
         if step > max_steps {
