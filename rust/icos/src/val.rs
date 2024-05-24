@@ -23,8 +23,9 @@ pub enum Val {
 #[derive(Clone)]
 pub enum Angle {
     Pi(Box<Val>),
-    // // Numeric ops:
+    // Numeric ops:
     Sum(Box<Self>, Box<Self>),
+    Prod(Box<Self>, Box<Val>),
     // Trig fns:
     ASin(Box<Val>),
     ACos(Box<Val>),
@@ -183,14 +184,14 @@ impl Angle {
     pub fn mul(self, a: &Val) -> Self {
         match self {
             Self::Pi(x) => Self::Pi(Box::new(x.mul(a))),
-            _ => todo!(),
+            _ => Self::Prod(Box::new(self), Box::new(a.clone())),
         }
     }
 
     pub fn div(self, a: &Val) -> Self {
         match self {
             Self::Pi(x) => Self::Pi(Box::new(x.div(a))),
-            _ => todo!(),
+            _ => Self::Prod(Box::new(self), Box::new(Val::from(1).div(a))),
         }
     }
 
@@ -295,6 +296,7 @@ impl ToPrimitive for Angle {
         match self {
             Self::Pi(a) => a.to_f64().and_then(|x| Some(PI * x)),
             Self::Sum(a, b) => a.to_f64().and_then(|x| b.to_f64().map(|y| x + y)),
+            Self::Prod(a, b) => a.to_f64().and_then(|x| b.to_f64().map(|y| x * y)),
             Self::ASin(a) => a.to_f64().and_then(|x| Some(x.asin())),
             Self::ACos(a) => a.to_f64().and_then(|x| Some(x.acos())),
         }
@@ -326,6 +328,7 @@ impl fmt::Display for Angle {
                 }
             }
             Self::Sum(a, b) => write!(f, "({} + {})", a, b),
+            Self::Prod(a, b) => write!(f, "({} * {})", a, b),
             Self::ASin(a) => write!(f, "asin({})", a),
             Self::ACos(a) => write!(f, "acos({})", a),
         }

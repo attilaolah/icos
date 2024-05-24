@@ -4,3 +4,4 @@ mod val;
 
 pub use icos::{alpha, cir, inr, mid};
 pub use spherical::Norm;
+pub use val::{Angle, Val};
