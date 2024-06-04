@@ -1,29 +1,32 @@
-use crate::val::{sqrt, Angle, Val};
+use crate::val::{Angle, Val};
 
 /// The golden ratio.
 fn phi() -> Val {
     // (1 + sqrt(5)) / 2
-    sqrt(5.into()).add(&1.into()).div(&2.into())
+    Val::from(5).sqrt().add(&1.into()).div(&2.into())
 }
 
 /// Angle at the origin between two vertices of an edge.
 pub fn alpha() -> Angle {
     // acos(sqrt(5) / 5)
-    sqrt(5.into()).div(&5.into()).acos()
+    Val::from(5).sqrt().div(&5.into()).acos()
 }
 
 /// Inradius:
 /// radius of the inscribed squere of an icosehadron with edge length 1.
 pub fn inr() -> Val {
     // phi^2 / (2 * sqrt(3))
-    phi().pow(&2.into()).div(&sqrt(3.into())).div(&2.into())
+    phi()
+        .pow(&2.into())
+        .div(&Val::from(3).sqrt())
+        .div(&2.into())
 }
 
 /// Circumradius:
 /// Radius of the sicrumsphere of an icosahedron with edge length 1.
 pub fn cir() -> Val {
     // sqrt(phi^2 + 1) / 2
-    sqrt(phi().pow(&2.into()).add(&1.into())).div(&2.into())
+    phi().pow(&2.into()).add(&1.into()).sqrt().div(&2.into())
 }
 
 /// Midradius:

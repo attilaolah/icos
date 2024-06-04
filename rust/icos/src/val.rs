@@ -18,6 +18,8 @@ pub enum Val {
     // Trig fns:
     Sin(Angle),
     Cos(Angle),
+    // Parameter:
+    Param(usize),
 }
 
 #[derive(Clone)]
@@ -32,6 +34,10 @@ pub enum Angle {
 }
 
 impl Val {
+    pub fn param(t: usize) -> Self {
+        Self::Param(t)
+    }
+
     pub fn add(self, a: &Val) -> Self {
         // If either value is a literal zero, just return the other one.
         if self.is_zero() {
@@ -219,6 +225,10 @@ impl Angle {
             _ => false,
         }
     }
+
+    pub fn imul(self, a: i64) -> Self {
+        self.mul(&a.into())
+    }
 }
 
 impl From<i64> for Val {
@@ -277,6 +287,7 @@ impl ToPrimitive for Val {
             Self::Pow(a, b) => a.to_f64().and_then(|x| b.to_f64().map(|y| x.powf(y))),
             Self::Sin(a) => a.to_f64().and_then(|x| Some(x.sin())),
             Self::Cos(a) => a.to_f64().and_then(|x| Some(x.cos())),
+            Self::Param(_) => None,
         }
     }
 }
@@ -310,9 +321,16 @@ impl fmt::Display for Val {
             Self::Sum(a, b) => write!(f, "({} + {})", a, b),
             Self::Prod(a, b) => write!(f, "({} * {})", a, b),
             Self::Rec(a) => write!(f, "(1 / {})", a),
-            Self::Pow(a, b) => write!(f, "({}^{})", a, b),
+            Self::Pow(a, b) => write!(f, "pow({}, {})", a, b),
             Self::Sin(a) => write!(f, "sin({})", a),
             Self::Cos(a) => write!(f, "cos({})", a),
+            Self::Param(t) => {
+                if *t == 0 {
+                    write!(f, "t")
+                } else {
+                    write!(f, "t_{}", t)
+                }
+            }
         }
     }
 }
@@ -333,8 +351,4 @@ impl fmt::Display for Angle {
             Self::ACos(a) => write!(f, "acos({})", a),
         }
     }
-}
-
-pub fn sqrt(a: Val) -> Val {
-    a.sqrt()
 }

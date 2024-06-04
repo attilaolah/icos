@@ -64,7 +64,6 @@ impl Norm {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::val::sqrt;
     use approx::assert_relative_eq;
     use num_traits::ToPrimitive;
 
@@ -105,7 +104,7 @@ mod test {
                 .distance_to(Norm::zero().south(&quarter_turn))
                 .to_f64()
                 .unwrap(),
-            sqrt(2.into()).to_f64().unwrap()
+            Val::from(2).sqrt().to_f64().unwrap()
         );
     }
 }
