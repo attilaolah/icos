@@ -9,6 +9,8 @@ async function draw(shape) {
     window.removeEventListener("resize", resize);
   }
 
+  const req = fetch(`/geometry/${shape}.json`);
+
   engine = new BABYLON.Engine(canvas, true);
 
   scene = new BABYLON.Scene(engine);
@@ -21,8 +23,14 @@ async function draw(shape) {
   );
   light.intensity = 0.8;
 
-  const req = await fetch(`/geometry/${shape}.json`);
-  const geometry = await req.json();
+  document.body.querySelectorAll(".params label")
+    .forEach(elem => {
+      elem.style.display = "none";
+    })
+  document.body.querySelectorAll(`.params label.${shape.replace(".", "-")}`)
+    .forEach(elem => {
+      elem.style.display = "initial";
+    })
 
   const camera = new BABYLON.ArcRotateCamera("Camera",
     0, 0, 4,
@@ -35,7 +43,17 @@ async function draw(shape) {
   camera.attachControl(canvas, true);
 
   const data = new BABYLON.VertexData();
-  data.positions = geometry.positions;
+  const geometry = await (await req).json();
+  const positions = geometry.positions
+    .map(pos => new Function("t_1", `
+      "use strict";
+      const pi = Math.PI;
+      const { sin, cos, asin, acos, pow } = Math;
+      return ${pos};
+    `));
+
+  let t = parseFloat(document.getElementById("t").value);
+  data.positions = positions.map(fn => fn(t));
   data.indices = geometry.indices;
 
   const mesh = new BABYLON.Mesh("Icosahedron", scene);
@@ -43,6 +61,13 @@ async function draw(shape) {
 
   // Register a render loop to repeatedly render the scene
   engine.runRenderLoop(function() {
+    const newt = parseFloat(document.getElementById("t").value);
+    if (newt !== t) {
+      t = newt;
+      data.positions = positions.map(fn => fn(t));
+      data.applyToMesh(mesh);
+    }
+
     scene.render();
   });
 
