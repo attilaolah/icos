@@ -1,0 +1,32 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>Icosahedron</title>
+
+<link href="/css/viewport.css" rel="stylesheet" />
+<link
+  href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+  rel="stylesheet"
+/>
+
+<script src="https://cdn.babylonjs.com/babylon.js"></script>
+<script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+<script src="https://code.jquery.com/pep/0.4.3/pep.js"></script>
+
+<canvas id="viewport" touch-action="none"></canvas>
+
+<article>
+  <form>
+    <select id="shape">
+      <option selected>icos.f64</option>
+      <option>icos.trunc.f64</option>
+    </select>
+    <div class="params">
+      <label>
+        <em>t</em> = <span id="val-t">0</val>
+        <input id="t" type="range" min="0" max="1" step="0.05" value="00" disabled />
+      </label>
+    </div>
+  </form>
+</article>
+
+<script src="/js/icos.mjs" type="module"></script>

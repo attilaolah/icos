@@ -1,0 +1,33 @@
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+#viewport {
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  z-index: 0;
+}
+
+form {
+  color: white;
+  position: absolute;
+  top: 1em;
+  left: 1em;
+  width: 480px;
+  padding: var(--pico-block-spacing-vertical)
+    var(--pico-block-spacing-horizontal);
+
+  border-radius: var(--pico-border-radius);
+
+  background: var(--pico-card-background-color);
+}
+
+.params {
+  display: none;
+}
