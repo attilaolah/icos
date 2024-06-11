@@ -18,6 +18,7 @@ pub enum Val {
     // Trig fns:
     Sin(Angle),
     Cos(Angle),
+    Tan(Angle),
     // Parameter:
     Param(usize),
 }
@@ -31,6 +32,7 @@ pub enum Angle {
     // Trig fns:
     ASin(Box<Val>),
     ACos(Box<Val>),
+    ATan(Box<Val>),
 }
 
 impl Val {
@@ -147,6 +149,13 @@ impl Val {
         }
     }
 
+    pub fn atan(self) -> Angle {
+        match self {
+            Self::Tan(x) => x,
+            _ => Angle::ATan(Box::new(self)),
+        }
+    }
+
     fn is_zero(&self) -> bool {
         match self {
             Self::Int(x) => x.is_zero(),
@@ -214,6 +223,14 @@ impl Angle {
             1.into()
         } else {
             Val::Cos(self)
+        }
+    }
+
+    pub fn tan(self) -> Val {
+        if self.is_zero() {
+            0.into()
+        } else {
+            Val::Tan(self)
         }
     }
 
@@ -287,6 +304,7 @@ impl ToPrimitive for Val {
             Self::Pow(a, b) => a.to_f64().and_then(|x| b.to_f64().map(|y| x.powf(y))),
             Self::Sin(a) => a.to_f64().and_then(|x| Some(x.sin())),
             Self::Cos(a) => a.to_f64().and_then(|x| Some(x.cos())),
+            Self::Tan(a) => a.to_f64().and_then(|x| Some(x.tan())),
             Self::Param(_) => None,
         }
     }
@@ -310,6 +328,7 @@ impl ToPrimitive for Angle {
             Self::Prod(a, b) => a.to_f64().and_then(|x| b.to_f64().map(|y| x * y)),
             Self::ASin(a) => a.to_f64().and_then(|x| Some(x.asin())),
             Self::ACos(a) => a.to_f64().and_then(|x| Some(x.acos())),
+            Self::ATan(a) => a.to_f64().and_then(|x| Some(x.atan())),
         }
     }
 }
@@ -324,6 +343,7 @@ impl fmt::Display for Val {
             Self::Pow(a, b) => write!(f, "pow({}, {})", a, b),
             Self::Sin(a) => write!(f, "sin({})", a),
             Self::Cos(a) => write!(f, "cos({})", a),
+            Self::Tan(a) => write!(f, "tan({})", a),
             Self::Param(t) => {
                 if *t == 0 {
                     write!(f, "t")
@@ -342,13 +362,14 @@ impl fmt::Display for Angle {
                 if a.is_zero() {
                     write!(f, "0")
                 } else {
-                    write!(f, "{} * pi", a)
+                    write!(f, "{} * PI", a)
                 }
             }
             Self::Sum(a, b) => write!(f, "({} + {})", a, b),
             Self::Prod(a, b) => write!(f, "({} * {})", a, b),
             Self::ASin(a) => write!(f, "asin({})", a),
             Self::ACos(a) => write!(f, "acos({})", a),
+            Self::ATan(a) => write!(f, "atan({})", a),
         }
     }
 }

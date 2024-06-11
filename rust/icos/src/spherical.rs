@@ -41,6 +41,35 @@ impl Norm {
         self.east(&a.clone().mul(&(-1).into()))
     }
 
+    pub fn rot_x(self, a: &Angle) -> Self {
+        Self {
+            theta: self
+                .theta
+                .clone()
+                .sin()
+                .mul(&self.phi.clone().sin())
+                .mul(&a.clone().sin())
+                .add(&self.theta.clone().cos().mul(&a.clone().cos()))
+                .acos(),
+            phi: self
+                .phi
+                .clone()
+                .tan()
+                .mul(
+                    &a.clone().cos().sub(
+                        &self
+                            .phi
+                            .clone()
+                            .tan()
+                            .rec()
+                            .mul(&a.clone().sin())
+                            .mul(&self.phi.clone().cos().rec()),
+                    ),
+                )
+                .atan(),
+        }
+    }
+
     pub fn distance_to(self, to: Self) -> Val {
         let dx = to.x().sub(&self.x()).pow(&2.into());
         let dy = to.y().sub(&self.y()).pow(&2.into());
