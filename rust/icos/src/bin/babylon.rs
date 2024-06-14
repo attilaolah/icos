@@ -15,6 +15,16 @@ struct Geometry {
     symmetry: String,
 }
 
+#[derive(Serialize)]
+#[serde(crate = "rocket::serde")]
+struct Consts {
+    x: Vec<String>,
+    y: Vec<String>,
+    z: Vec<String>,
+    r: Vec<String>,
+    o: Vec<String>,
+}
+
 #[get("/icos.json")]
 fn icos_json() -> Json<Vec<Geometry>> {
     let a = alpha();
@@ -49,11 +59,7 @@ fn icos_trunc_json() -> Json<Vec<Geometry>> {
 
     let r_0_0 = top.clone().south(&by);
     let r_0_1 = r_0_0.clone().east(&fifth);
-
     let r_1_0 = top.clone().south(&alpha()).north(&by);
-    let r_1_1 = r_1_0.clone().east(&fifth);
-
-    let positions = vec![r_0_0, r_0_1, r_1_0, r_1_1];
 
     Json(vec![
         Geometry {
@@ -62,11 +68,36 @@ fn icos_trunc_json() -> Json<Vec<Geometry>> {
             symmetry: "icos.v.1".into(),
         },
         Geometry {
-            positions: xyz(positions),
-            indices: vec![0, 2, 3, 0, 3, 1],
-            symmetry: "icos.f.1".into(),
+            positions: xyz(vec![r_0_0, r_0_1.clone(), r_1_0]),
+            indices: vec![0, 2, 1],
+            symmetry: "icos.f.3".into(),
+        },
+        Geometry {
+            positions: xyz(vec![r_0_1]),
+            indices: vec![],
+            symmetry: "icos.f.c".into(),
         },
     ])
+}
+
+#[get("/consts.json")]
+fn consts_json() -> Json<Consts> {
+    let z = Norm::zero();
+
+    let q = z.clone().south(&alpha());
+    let r = q.clone().east(&Angle::turn().div(&5.into()));
+
+    let ox = format!("{} + {}", q.x(), r.x());
+    let oy = r.y().to_string();
+    let oz = format!("{} + {} + {}", q.z(), r.z(), z.z());
+
+    Json(Consts {
+        x: vec!["1".into(), "0".into(), "0".into()],
+        y: vec!["0".into(), "1".into(), "0".into()],
+        z: vec!["0".into(), "0".into(), "1".into()],
+        r: xyz(vec![r]),
+        o: vec![ox, oz, oy],
+    })
 }
 
 fn xyz(points: Vec<Norm>) -> Vec<String> {
@@ -83,5 +114,8 @@ fn xyz(points: Vec<Norm>) -> Vec<String> {
 fn rocket() -> _ {
     rocket::build()
         .mount("/", FileServer::from(relative!("static")))
-        .mount("/geometry", routes![icos_json, icos_trunc_json])
+        .mount(
+            "/geometry",
+            routes![icos_json, icos_trunc_json, consts_json],
+        )
 }

@@ -9,17 +9,23 @@
 />
 
 <script src="https://cdn.babylonjs.com/babylon.js"></script>
-<script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
-<script src="https://code.jquery.com/pep/0.4.3/pep.js"></script>
+
+<body data-theme="dark">
 
 <canvas id="viewport" touch-action="none"></canvas>
 
-<article>
+<article class="panel-left">
+  <header>
+    <h2>Geometry</h2>
+    <p>Select a polyhedron and its parameters.</p>
+  </header>
+
   <form>
     <select id="shape">
-      <option selected>icos</option>
-      <option>icos.trunc</option>
+      <option value="icos">Icosahedron</option>
+      <option value="icos.trunc" selected>Truncated icosahedron</option>
     </select>
+
     <div class="params">
       <label class="icos-trunc">
         <em>t</em> = <span id="val-t">0</val>
@@ -30,3 +36,4 @@
 </article>
 
 <script src="/js/icos.mjs" type="module"></script>
+</body>
