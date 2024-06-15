@@ -28,7 +28,6 @@ function pvec(xyz) {
 }
 
 async function draw(shape) {
-
   if (engine) {
     scene.dispose();
     engine.dispose();

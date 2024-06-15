@@ -23,11 +23,12 @@
   <form>
     <select id="shape">
       <option value="icos">Icosahedron</option>
-      <option value="icos.trunc" selected>Truncated icosahedron</option>
+      <option value="icos.trunc" selected>(1, 1) Truncated icosahedron</option>
+      <option value="dodec">(1, 0) Dodecahedron</option>
     </select>
 
     <div class="params">
-      <label class="icos-trunc">
+      <label class="icos-trunc dodec">
         <em>t</em> = <span id="val-t">0</val>
         <input id="t" type="range" min="0" max="1" step="0.05" value="0.6329870724964068" />
       </label>

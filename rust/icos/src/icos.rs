@@ -1,7 +1,7 @@
 use crate::val::{Angle, Val};
 
 /// The golden ratio.
-fn phi() -> Val {
+pub fn phi() -> Val {
     // (1 + sqrt(5)) / 2
     Val::from(5).sqrt().add(&1.into()).div(&2.into())
 }

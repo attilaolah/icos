@@ -1,4 +1,4 @@
-use icos::{alpha, Angle, Norm, Val};
+use icos::{alpha, beta, Angle, Norm, Val};
 use rocket::{
     fs::{relative, FileServer},
     serde::{json::Json, Serialize},
@@ -80,6 +80,26 @@ fn icos_trunc_json() -> Json<Vec<Geometry>> {
     ])
 }
 
+#[get("/dodec.json")]
+fn dodec_json() -> Json<Vec<Geometry>> {
+    let fifth = Angle::turn().div(&5.into());
+    let tenth = Angle::turn().div(&10.into());
+
+    let top = Norm::zero();
+    let pentagon = ((0 as i64)..5).into_iter().map(|i| {
+        top.clone()
+            .south(&beta())
+            .east(&tenth)
+            .east(&fifth.clone().mul(&i.into()))
+    });
+
+    Json(vec![Geometry {
+        positions: xyz(pentagon.collect()),
+        indices: vec![0, 1, 2, 2, 3, 0, 0, 3, 4],
+        symmetry: "icos.v.1".into(),
+    }])
+}
+
 #[get("/consts.json")]
 fn consts_json() -> Json<Consts> {
     let z = Norm::zero();
@@ -116,6 +136,6 @@ fn rocket() -> _ {
         .mount("/", FileServer::from(relative!("static")))
         .mount(
             "/geometry",
-            routes![icos_json, icos_trunc_json, consts_json],
+            routes![icos_json, icos_trunc_json, dodec_json, consts_json],
         )
 }

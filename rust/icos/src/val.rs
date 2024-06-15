@@ -12,9 +12,11 @@ pub enum Val {
     Int(Int),
     // Numeric ops:
     Sum(Box<Self>, Box<Self>),
-    Prod(Box<Self>, Box<Self>),
-    Rec(Box<Self>),
+    Dif(Box<Self>, Box<Self>),
+    Prd(Box<Self>, Box<Self>),
+    Rat(Box<Self>, Box<Self>),
     Pow(Box<Self>, Box<Self>),
+    Sqrt(Box<Self>),
     // Trig fns:
     Sin(Angle),
     Cos(Angle),
@@ -28,7 +30,9 @@ pub enum Angle {
     Pi(Box<Val>),
     // Numeric ops:
     Sum(Box<Self>, Box<Self>),
-    Prod(Box<Self>, Box<Val>),
+    Dif(Box<Self>, Box<Self>),
+    Prd(Box<Self>, Box<Val>),
+    Rat(Box<Self>, Box<Val>),
     // Trig fns:
     ASin(Box<Val>),
     ACos(Box<Val>),
@@ -64,6 +68,9 @@ impl Val {
         match self {
             // Try to push down the operation.
             Self::Int(x) => Self::Int(-x),
+            Self::Dif(x, y) => Self::Dif(y, x),
+            Self::Prd(x, y) => Self::Prd(Box::new(x.neg()), y),
+            Self::Rat(x, y) => Self::Rat(Box::new(x.neg()), y),
             _ => self.mul(&Self::from(-1)),
         }
     }
@@ -82,7 +89,7 @@ impl Val {
                 // Otherwise try to push down the operation.
                 (Self::Int(x), Self::Int(y)) => Self::Int(x * y),
                 // If that doesn't work, bodx the product int a new enum.
-                _ => Self::Prod(Box::new(self), Box::new(a.clone())),
+                _ => Self::Prd(Box::new(self), Box::new(a.clone())),
             }
         }
     }
@@ -95,7 +102,7 @@ impl Val {
         } else if a.is_one() {
             self
         } else {
-            self.mul(&a.clone().rec())
+            Self::Rat(Box::new(self), Box::new(a.clone()))
         }
     }
 
@@ -105,7 +112,10 @@ impl Val {
         } else if self.is_one() {
             1.into()
         } else {
-            Self::Rec(Box::new(self))
+            match &self {
+                Self::Rat(a, b) => Self::Rat(b.clone(), a.clone()),
+                _ => Self::Rat(Box::from(Val::from(1)), Box::from(self)),
+            }
         }
     }
 
@@ -127,7 +137,7 @@ impl Val {
         } else if self.is_one() {
             1.into()
         } else {
-            self.pow(&Val::from(1).div(&2.into()))
+            Self::Sqrt(Box::new(self))
         }
     }
 
@@ -196,17 +206,35 @@ impl Angle {
         }
     }
 
+    /// Substitutes another angle from this one.
+    pub fn sub(self, a: &Self) -> Self {
+        if self.is_zero() {
+            a.clone().neg()
+        } else if a.is_zero() {
+            self
+        } else {
+            match (&self, &a) {
+                (Self::Pi(ref x), Self::Pi(ref y)) => Self::Pi(Box::new(x.clone().sub(y))),
+                _ => Self::Dif(Box::new(self), Box::new(a.clone())),
+            }
+        }
+    }
+
+    pub fn neg(self) -> Self {
+        self.mul(&(-1).into())
+    }
+
     pub fn mul(self, a: &Val) -> Self {
         match self {
             Self::Pi(x) => Self::Pi(Box::new(x.mul(a))),
-            _ => Self::Prod(Box::new(self), Box::new(a.clone())),
+            _ => Self::Prd(Box::new(self), Box::new(a.clone())),
         }
     }
 
     pub fn div(self, a: &Val) -> Self {
         match self {
             Self::Pi(x) => Self::Pi(Box::new(x.div(a))),
-            _ => Self::Prod(Box::new(self), Box::new(Val::from(1).div(a))),
+            _ => Self::Rat(Box::new(self), Box::new(a.clone())),
         }
     }
 
@@ -242,10 +270,6 @@ impl Angle {
             _ => false,
         }
     }
-
-    pub fn imul(self, a: i64) -> Self {
-        self.mul(&a.into())
-    }
 }
 
 impl From<i64> for Val {
@@ -259,11 +283,8 @@ impl ToPrimitive for Val {
         match self {
             Self::Int(a) => a.to_i64(),
             Self::Sum(a, b) => a.to_i64().and_then(|x| b.to_i64().map(|y| x + y)),
-            Self::Prod(a, b) => a.to_i64().and_then(|x| b.to_i64().map(|y| x * y)),
-            Self::Rec(a) => match &**a {
-                Self::Rec(x) => x.clone().to_i64(),
-                _ => a.to_i64().and_then(|x| if x == 1 { Some(1) } else { None }),
-            },
+            Self::Dif(a, b) => a.to_i64().and_then(|x| b.to_i64().map(|y| x - y)),
+            Self::Prd(a, b) => a.to_i64().and_then(|x| b.to_i64().map(|y| x * y)),
             Self::Pow(a, b) => a.to_i64().and_then(|x| {
                 b.to_u64().and_then(|y| match y.try_into() {
                     Ok(y) => Some(x.pow(y)),
@@ -278,11 +299,8 @@ impl ToPrimitive for Val {
         match self {
             Self::Int(a) => a.to_u64(),
             Self::Sum(a, b) => a.to_u64().and_then(|x| b.to_u64().map(|y| x + y)),
-            Self::Prod(a, b) => a.to_u64().and_then(|x| b.to_u64().map(|y| x * y)),
-            Self::Rec(a) => match &**a {
-                Self::Rec(x) => x.clone().to_u64(),
-                _ => a.to_u64().and_then(|x| if x == 1 { Some(1) } else { None }),
-            },
+            Self::Dif(a, b) => a.to_u64().and_then(|x| b.to_u64().map(|y| x - y)),
+            Self::Prd(a, b) => a.to_u64().and_then(|x| b.to_u64().map(|y| x * y)),
             Self::Pow(a, b) => a.to_u64().and_then(|x| {
                 b.to_u64().and_then(|y| match y.try_into() {
                     Ok(y) => Some(x.pow(y)),
@@ -299,9 +317,11 @@ impl ToPrimitive for Val {
         match self {
             Self::Int(a) => a.to_f64(),
             Self::Sum(a, b) => a.to_f64().and_then(|x| b.to_f64().map(|y| x + y)),
-            Self::Prod(a, b) => a.to_f64().and_then(|x| b.to_f64().map(|y| x * y)),
-            Self::Rec(a) => a.to_f64().and_then(|x| Some(1.0 / x)),
+            Self::Dif(a, b) => a.to_f64().and_then(|x| b.to_f64().map(|y| x - y)),
+            Self::Prd(a, b) => a.to_f64().and_then(|x| b.to_f64().map(|y| x * y)),
+            Self::Rat(a, b) => a.to_f64().and_then(|x| b.to_f64().map(|y| x / y)),
             Self::Pow(a, b) => a.to_f64().and_then(|x| b.to_f64().map(|y| x.powf(y))),
+            Self::Sqrt(a) => a.to_f64().and_then(|x| Some(x.sqrt())),
             Self::Sin(a) => a.to_f64().and_then(|x| Some(x.sin())),
             Self::Cos(a) => a.to_f64().and_then(|x| Some(x.cos())),
             Self::Tan(a) => a.to_f64().and_then(|x| Some(x.tan())),
@@ -325,7 +345,9 @@ impl ToPrimitive for Angle {
         match self {
             Self::Pi(a) => a.to_f64().and_then(|x| Some(PI * x)),
             Self::Sum(a, b) => a.to_f64().and_then(|x| b.to_f64().map(|y| x + y)),
-            Self::Prod(a, b) => a.to_f64().and_then(|x| b.to_f64().map(|y| x * y)),
+            Self::Dif(a, b) => a.to_f64().and_then(|x| b.to_f64().map(|y| x - y)),
+            Self::Prd(a, b) => a.to_f64().and_then(|x| b.to_f64().map(|y| x * y)),
+            Self::Rat(a, b) => a.to_f64().and_then(|x| b.to_f64().map(|y| x / y)),
             Self::ASin(a) => a.to_f64().and_then(|x| Some(x.asin())),
             Self::ACos(a) => a.to_f64().and_then(|x| Some(x.acos())),
             Self::ATan(a) => a.to_f64().and_then(|x| Some(x.atan())),
@@ -337,10 +359,12 @@ impl fmt::Display for Val {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Int(a) => write!(f, "{}", a),
-            Self::Sum(a, b) => write!(f, "({} + {})", a, b),
-            Self::Prod(a, b) => write!(f, "({} * {})", a, b),
-            Self::Rec(a) => write!(f, "(1 / {})", a),
-            Self::Pow(a, b) => write!(f, "pow({}, {})", a, b),
+            Self::Sum(a, b) => write!(f, "({}+{})", a, b),
+            Self::Dif(a, b) => write!(f, "({}-{})", a, b),
+            Self::Prd(a, b) => write!(f, "({}*{})", a, b),
+            Self::Rat(a, b) => write!(f, "({}/{})", a, b),
+            Self::Pow(a, b) => write!(f, "pow({},{})", a, b),
+            Self::Sqrt(a) => write!(f, "sqrt({})", a),
             Self::Sin(a) => write!(f, "sin({})", a),
             Self::Cos(a) => write!(f, "cos({})", a),
             Self::Tan(a) => write!(f, "tan({})", a),
@@ -362,11 +386,13 @@ impl fmt::Display for Angle {
                 if a.is_zero() {
                     write!(f, "0")
                 } else {
-                    write!(f, "{} * PI", a)
+                    write!(f, "{}*PI", a)
                 }
             }
-            Self::Sum(a, b) => write!(f, "({} + {})", a, b),
-            Self::Prod(a, b) => write!(f, "({} * {})", a, b),
+            Self::Sum(a, b) => write!(f, "({}+{})", a, b),
+            Self::Dif(a, b) => write!(f, "({}-{})", a, b),
+            Self::Prd(a, b) => write!(f, "({}*{})", a, b),
+            Self::Rat(a, b) => write!(f, "({}/{})", a, b),
             Self::ASin(a) => write!(f, "asin({})", a),
             Self::ACos(a) => write!(f, "acos({})", a),
             Self::ATan(a) => write!(f, "atan({})", a),
