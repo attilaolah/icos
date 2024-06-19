@@ -105,6 +105,7 @@ async function draw(shape) {
     const name = `t${i}`;
     const output = document.createElement("output");
     output.setAttribute("for", name);
+    output.value = pval(t).toFixed(2);
 
     const input = document.createElement("input");
     Object.entries({
