@@ -19,25 +19,25 @@ impl Norm {
         }
     }
 
-    pub fn north(self, a: &Angle) -> Self {
+    pub fn north(&self, a: &Angle) -> Self {
         self.south(&a.clone().neg())
     }
 
-    pub fn south(self, a: &Angle) -> Self {
+    pub fn south(&self, a: &Angle) -> Self {
         Self {
             theta: self.theta.add(a),
-            phi: self.phi,
+            phi: self.phi.clone(),
         }
     }
 
-    pub fn east(self, a: &Angle) -> Self {
+    pub fn east(&self, a: &Angle) -> Self {
         Self {
-            theta: self.theta,
+            theta: self.theta.clone(),
             phi: self.phi.add(a),
         }
     }
 
-    pub fn west(self, a: &Angle) -> Self {
+    pub fn west(&self, a: &Angle) -> Self {
         self.east(&a.clone().neg())
     }
 

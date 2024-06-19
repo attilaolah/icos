@@ -44,38 +44,38 @@ impl Val {
         Self::Param(t)
     }
 
-    pub fn add(self, a: &Val) -> Self {
+    pub fn add(&self, a: &Val) -> Self {
         // If either value is a literal zero, just return the other one.
         if self.is_zero() {
             a.clone()
         } else if a.is_zero() {
-            self
+            self.clone()
         } else {
             match (&self, &a) {
                 // Otherwise try to push down the operation.
                 (Self::Int(x), Self::Int(y)) => Self::Int(x + y),
                 // If that doesn't work, box the sum into a new enum.
-                _ => Self::Sum(Box::new(self), Box::new(a.clone())),
+                _ => Self::Sum(Box::new(self.clone()), Box::new(a.clone())),
             }
         }
     }
 
-    pub fn sub(self, a: &Val) -> Self {
-        self.add(&a.clone().neg())
+    pub fn sub(&self, a: &Val) -> Self {
+        self.add(&a.neg())
     }
 
-    pub fn neg(self) -> Self {
+    pub fn neg(&self) -> Self {
         match self {
             // Try to push down the operation.
             Self::Int(x) => Self::Int(-x),
-            Self::Dif(x, y) => Self::Dif(y, x),
-            Self::Prd(x, y) => Self::Prd(Box::new(x.neg()), y),
-            Self::Rat(x, y) => Self::Rat(Box::new(x.neg()), y),
+            Self::Dif(x, y) => Self::Dif(y.clone(), x.clone()),
+            Self::Prd(x, y) => Self::Prd(Box::new(x.neg()), y.clone()),
+            Self::Rat(x, y) => Self::Rat(Box::new(x.neg()), y.clone()),
             _ => self.mul(&Self::from(-1)),
         }
     }
 
-    pub fn mul(self, a: &Val) -> Self {
+    pub fn mul(&self, a: &Val) -> Self {
         // If either value is a literal zero, just return zero.
         // Or, if either value is a literal one, just return the other one.
         if self.is_zero() || a.is_zero() {
@@ -83,30 +83,30 @@ impl Val {
         } else if self.is_one() {
             a.clone()
         } else if a.is_one() {
-            self
+            self.clone()
         } else {
             match (&self, &a) {
                 // Otherwise try to push down the operation.
                 (Self::Int(x), Self::Int(y)) => Self::Int(x * y),
                 // If that doesn't work, bodx the product int a new enum.
-                _ => Self::Prd(Box::new(self), Box::new(a.clone())),
+                _ => Self::Prd(Box::new(self.clone()), Box::new(a.clone())),
             }
         }
     }
 
-    pub fn div(self, a: &Val) -> Self {
+    pub fn div(&self, a: &Val) -> Self {
         if a.is_zero() {
             panic!("?/0")
         } else if self.is_zero() {
             0.into()
         } else if a.is_one() {
-            self
+            self.clone()
         } else {
-            Self::Rat(Box::new(self), Box::new(a.clone()))
+            Self::Rat(Box::new(self.clone()), Box::new(a.clone()))
         }
     }
 
-    pub fn rec(self) -> Self {
+    pub fn rec(&self) -> Self {
         if self.is_zero() {
             panic!("1/0")
         } else if self.is_one() {
@@ -114,12 +114,12 @@ impl Val {
         } else {
             match &self {
                 Self::Rat(a, b) => Self::Rat(b.clone(), a.clone()),
-                _ => Self::Rat(Box::from(Val::from(1)), Box::from(self)),
+                _ => Self::Rat(Box::from(Val::from(1)), Box::from(self.clone())),
             }
         }
     }
 
-    pub fn pow(self, a: &Val) -> Self {
+    pub fn pow(&self, a: &Val) -> Self {
         if self.is_zero() && a.is_zero() {
             panic!("0^0")
         } else if self.is_zero() {
@@ -127,42 +127,42 @@ impl Val {
         } else if a.is_zero() {
             1.into()
         } else {
-            Self::Pow(Box::new(self), Box::new(a.clone()))
+            Self::Pow(Box::new(self.clone()), Box::new(a.clone()))
         }
     }
 
-    pub fn sqrt(self) -> Self {
+    pub fn sqrt(&self) -> Self {
         if self.is_zero() {
             0.into()
         } else if self.is_one() {
             1.into()
         } else {
-            Self::Sqrt(Box::new(self))
+            Self::Sqrt(Box::new(self.clone()))
         }
     }
 
-    pub fn pi(self) -> Angle {
-        Angle::Pi(Box::new(self))
+    pub fn pi(&self) -> Angle {
+        Angle::Pi(Box::new(self.clone()))
     }
 
-    pub fn asin(self) -> Angle {
+    pub fn asin(&self) -> Angle {
         match self {
-            Self::Sin(x) => x,
-            _ => Angle::ASin(Box::new(self)),
+            Self::Sin(x) => x.clone(),
+            _ => Angle::ASin(Box::new(self.clone())),
         }
     }
 
-    pub fn acos(self) -> Angle {
+    pub fn acos(&self) -> Angle {
         match self {
-            Self::Cos(x) => x,
-            _ => Angle::ACos(Box::new(self)),
+            Self::Cos(x) => x.clone(),
+            _ => Angle::ACos(Box::new(self.clone())),
         }
     }
 
-    pub fn atan(self) -> Angle {
+    pub fn atan(&self) -> Angle {
         match self {
-            Self::Tan(x) => x,
-            _ => Angle::ATan(Box::new(self)),
+            Self::Tan(x) => x.clone(),
+            _ => Angle::ATan(Box::new(self.clone())),
         }
     }
 
@@ -181,19 +181,19 @@ impl Val {
     }
 
     // Shortcuts:
-    pub fn iadd(self, a: i64) -> Self {
+    pub fn iadd(&self, a: i64) -> Self {
         self.add(&a.into())
     }
-    pub fn isub(self, a: i64) -> Self {
+    pub fn isub(&self, a: i64) -> Self {
         self.sub(&a.into())
     }
-    pub fn imul(self, a: i64) -> Self {
+    pub fn imul(&self, a: i64) -> Self {
         self.mul(&a.into())
     }
-    pub fn idiv(self, a: i64) -> Self {
+    pub fn idiv(&self, a: i64) -> Self {
         self.div(&a.into())
     }
-    pub fn ipow(self, a: i64) -> Self {
+    pub fn ipow(&self, a: i64) -> Self {
         self.pow(&a.into())
     }
 }
@@ -209,73 +209,78 @@ impl Angle {
         Self::Pi(Box::new(2.into()))
     }
 
+    /// A partial turn.
+    pub fn part(a: i64) -> Self {
+        Self::turn().idiv(a)
+    }
+
     /// Adds another angle to this one.
-    pub fn add(self, a: &Self) -> Self {
+    pub fn add(&self, a: &Self) -> Self {
         if self.is_zero() {
             a.clone()
         } else if a.is_zero() {
-            self
+            self.clone()
         } else {
             match (&self, &a) {
                 (Self::Pi(ref x), Self::Pi(ref y)) => Self::Pi(Box::new(x.clone().add(y))),
-                _ => Self::Sum(Box::new(self), Box::new(a.clone())),
+                _ => Self::Sum(Box::new(self.clone()), Box::new(a.clone())),
             }
         }
     }
 
     /// Substitutes another angle from this one.
-    pub fn sub(self, a: &Self) -> Self {
+    pub fn sub(&self, a: &Self) -> Self {
         if self.is_zero() {
             a.clone().neg()
         } else if a.is_zero() {
-            self
+            self.clone()
         } else {
             match (&self, &a) {
                 (Self::Pi(ref x), Self::Pi(ref y)) => Self::Pi(Box::new(x.clone().sub(y))),
-                _ => Self::Dif(Box::new(self), Box::new(a.clone())),
+                _ => Self::Dif(Box::new(self.clone()), Box::new(a.clone())),
             }
         }
     }
 
-    pub fn neg(self) -> Self {
+    pub fn neg(&self) -> Self {
         self.imul(-1)
     }
 
-    pub fn mul(self, a: &Val) -> Self {
+    pub fn mul(&self, a: &Val) -> Self {
         match self {
             Self::Pi(x) => Self::Pi(Box::new(x.mul(a))),
-            _ => Self::Prd(Box::new(self), Box::new(a.clone())),
+            _ => Self::Prd(Box::new(self.clone()), Box::new(a.clone())),
         }
     }
 
-    pub fn div(self, a: &Val) -> Self {
+    pub fn div(&self, a: &Val) -> Self {
         match self {
             Self::Pi(x) => Self::Pi(Box::new(x.div(a))),
-            _ => Self::Rat(Box::new(self), Box::new(a.clone())),
+            _ => Self::Rat(Box::new(self.clone()), Box::new(a.clone())),
         }
     }
 
-    pub fn sin(self) -> Val {
+    pub fn sin(&self) -> Val {
         if self.is_zero() {
             0.into()
         } else {
-            Val::Sin(self)
+            Val::Sin(self.clone())
         }
     }
 
-    pub fn cos(self) -> Val {
+    pub fn cos(&self) -> Val {
         if self.is_zero() {
             1.into()
         } else {
-            Val::Cos(self)
+            Val::Cos(self.clone())
         }
     }
 
-    pub fn tan(self) -> Val {
+    pub fn tan(&self) -> Val {
         if self.is_zero() {
             0.into()
         } else {
-            Val::Tan(self)
+            Val::Tan(self.clone())
         }
     }
 
@@ -289,10 +294,10 @@ impl Angle {
     }
 
     // Shortcuts:
-    pub fn imul(self, a: i64) -> Self {
+    pub fn imul(&self, a: i64) -> Self {
         self.mul(&a.into())
     }
-    pub fn idiv(self, a: i64) -> Self {
+    pub fn idiv(&self, a: i64) -> Self {
         self.div(&a.into())
     }
 }

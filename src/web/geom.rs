@@ -12,20 +12,15 @@ pub struct Geometry {
 
 impl Geometry {
     pub fn goldberg_1_0() -> Vec<Self> {
-        let fifth = Angle::turn().idiv(5);
-        let tenth = Angle::turn().idiv(10);
+        let fifth = Angle::part(5);
+        let tenth = Angle::part(10);
 
         let top = Norm::zero();
 
         vec![Self {
             positions: xyz(((0 as i64)..5)
                 .into_iter()
-                .map(|i| {
-                    top.clone()
-                        .south(&beta())
-                        .east(&tenth)
-                        .east(&fifth.clone().imul(i))
-                })
+                .map(|i| top.south(&beta()).east(&tenth).east(&fifth.imul(i)))
                 .collect()),
             indices: vec![0, 1, 2, 2, 3, 0, 0, 3, 4],
             symmetry: "icos.v.1".into(),
@@ -41,11 +36,11 @@ impl Geometry {
         let top = Norm::zero();
         let pentagon = ((0 as i64)..5)
             .into_iter()
-            .map(|i| top.clone().south(&by).east(&fifth.clone().imul(i)));
+            .map(|i| top.south(&by).east(&fifth.imul(i)));
 
-        let r_0_0 = top.clone().south(&by);
-        let r_0_1 = r_0_0.clone().east(&fifth);
-        let r_1_0 = top.clone().south(&alpha()).north(&by);
+        let r_0_0 = top.south(&by);
+        let r_0_1 = r_0_0.east(&fifth);
+        let r_1_0 = top.south(&alpha()).north(&by);
 
         vec![
             Self {
@@ -70,8 +65,8 @@ impl Geometry {
         let t = Val::param(1);
         let by = beta().mul(&t);
 
-        let fifth = Angle::turn().idiv(5);
-        let tenth = Angle::turn().idiv(10);
+        let fifth = Angle::part(5);
+        let tenth = Angle::part(10);
 
         let o = Norm::zero().south(&beta()).east(&tenth);
         let r_0 = Norm::zero().south(&by).east(&tenth);
@@ -80,7 +75,7 @@ impl Geometry {
             Self {
                 positions: xyz(((0 as i64)..5)
                     .into_iter()
-                    .map(|i| r_0.clone().east(&fifth.clone().imul(i)))
+                    .map(|i| r_0.east(&fifth.imul(i)))
                     .collect()),
                 indices: vec![0, 1, 2, 2, 3, 0, 0, 3, 4],
                 symmetry: "icos.v.1".into(),
@@ -88,9 +83,9 @@ impl Geometry {
             Self {
                 positions: xyz(vec![
                     r_0.clone(),
-                    r_0.clone().east(&fifth),
+                    r_0.east(&fifth),
                     o.clone(),
-                    o.clone().east(&fifth),
+                    o.east(&fifth),
                 ]),
                 indices: vec![1, 0, 2, 1, 2, 3],
                 symmetry: "icos.f.3".into(),
