@@ -13,17 +13,17 @@ fn consts_json() -> Json<Consts> {
 }
 
 #[get("/goldberg.1.0.json")]
-fn goldberg_1_0_json() -> Json<Vec<Geometry>> {
+fn goldberg_1_0_json() -> Json<Geometry> {
     Json(Geometry::goldberg_1_0())
 }
 
 #[get("/goldberg.1.1.json")]
-fn goldberg_1_1_json() -> Json<Vec<Geometry>> {
+fn goldberg_1_1_json() -> Json<Geometry> {
     Json(Geometry::goldberg_1_1())
 }
 
 #[get("/goldberg.2.0.json")]
-fn goldberg_2_0_json() -> Json<Vec<Geometry>> {
+fn goldberg_2_0_json() -> Json<Geometry> {
     Json(Geometry::goldberg_2_0())
 }
 

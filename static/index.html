@@ -11,30 +11,26 @@
 <script src="https://cdn.babylonjs.com/babylon.js"></script>
 
 <body data-theme="dark">
+  <canvas id="viewport" touch-action="none"></canvas>
 
-<canvas id="viewport" touch-action="none"></canvas>
+  <article class="panel-left">
+    <header>
+      <h2>Geometry</h2>
+      <p>Select a polyhedron and its parameters.</p>
+    </header>
 
-<article class="panel-left">
-  <header>
-    <h2>Geometry</h2>
-    <p>Select a polyhedron and its parameters.</p>
-  </header>
+    <form>
+      <select id="shape">
+        <option value="goldberg.1.0">(1, 0) Dodecahedron</option>
+        <option value="goldberg.1.1" selected>
+          (1, 1) Truncated icosahedron
+        </option>
+        <option value="goldberg.2.0">(2, 0) Goldberg</option>
+      </select>
 
-  <form>
-    <select id="shape">
-      <option value="goldberg.1.0" selected>(1, 0) Dodecahedron</option>
-      <option value="goldberg.1.1">(1, 1) Truncated icosahedron</option>
-      <option value="goldberg.2.0">(2, 0) Goldberg</option>
-    </select>
+      <div class="params"></div>
+    </form>
+  </article>
 
-    <div class="params">
-      <label class="goldberg-1-1 goldberg-2-0">
-        <em>t</em> = <span id="val-t">0</val>
-        <input id="t" type="range" min="0" max="1" step="0.05" value="0.6329870724964068" />
-      </label>
-    </div>
-  </form>
-</article>
-
-<script src="/js/icos.mjs" type="module"></script>
+  <script src="/js/icos.mjs" type="module"></script>
 </body>

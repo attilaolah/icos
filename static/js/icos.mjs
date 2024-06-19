@@ -55,15 +55,6 @@ async function draw(shape) {
   );
   fl.intensity = 0.2;
 
-  document.body.querySelectorAll(".params label")
-    .forEach(elem => {
-      elem.style.display = "none";
-    })
-  document.body.querySelectorAll(`.params label.${shape.replaceAll(".", "-")}`)
-    .forEach(elem => {
-      elem.style.display = "initial";
-    })
-
   const camera = new ArcRotateCamera("Camera",
     0, 2, 0,
     new Vector3(0, 0, 0),
@@ -74,32 +65,70 @@ async function draw(shape) {
   camera.upperRadiusLimit = 20;
   camera.attachControl(canvas, true);
 
-  const geometries = await (await req).json();
-  const updates = geometries.map(geometry => {
-    geometry.positions = geometry.positions.map(pfun);
-    const meshes = symmetry(geometry);
+  const geometry = await (await req).json();
+  const updates = geometry.meshes.map(data => {
+    data.positions = data.positions.map(pfun);
+    const meshes = symmetry(data);
 
-    const data = new VertexData();
-    data.indices = geometry.indices;
+    const vd = new VertexData();
+    vd.indices = data.indices;
 
-    let t;
+    let update = true;
+    let params = geometry.params.map(pval);
     return () => {
-      const newt = parseFloat(document.getElementById("t").value);
-      if (newt === t) return;
-      t = newt;
+      params.forEach((t, i) => {
+        const newt = parseFloat(document.getElementById(`t${i}`).value);
+        if (newt !== t) {
+          document.querySelector(`output[for=t${i}]`).value = newt.toFixed(2);
+          params[i] = newt;
+          update = true;
+        }
+      });
 
-      data.positions = geometry.positions.map(fn => fn(t));
-      meshes.forEach(m => data.applyToMesh(m));
+      if (update) {
+        update = false;
+        vd.positions = data.positions.map(fn => fn.apply(null, params));
+        meshes.forEach(m => vd.applyToMesh(m));
+      }
     };
   });
 
-  // Register a render loop to repeatedly render the scene
+  const params = document.body.querySelector(".params");
+  Array.from(params.children).forEach(elem => elem.remove());
+  params.append(...geometry.params.map((t, i) => {
+    const sub = document.createElement("sub");
+    sub.innerText = i + 1;
+
+    const em = document.createElement("em");
+    em.append("t", sub);
+
+    const name = `t${i}`;
+    const output = document.createElement("output");
+    output.setAttribute("for", name);
+
+    const input = document.createElement("input");
+    Object.entries({
+      name,
+      id: name,
+      type: "range",
+      step: "0.01",
+      min: "0",
+      max: "1",
+      value: t,
+    }).forEach(([key, val]) => input.setAttribute(key, val));
+
+
+    const label = document.createElement("label");
+    label.append(em, " = ", output, input);
+
+    return label;
+  }));
+
   engine.runRenderLoop(() => {
     updates.forEach(fn => fn());
     scene.render();
   });
 
-  // Watch for browser/canvas resize events
   resize = window.addEventListener("resize", function() {
     engine.resize();
   });
@@ -109,11 +138,11 @@ const shape = document.getElementById("shape");
 shape.addEventListener("change", () => draw(shape.value));
 await draw(shape.value);
 
-function symmetry(geometry) {
-  switch (geometry.symmetry) {
+function symmetry(mesh) {
+  switch (mesh.symmetry) {
     case "icos.f.1": return symIcosF1();
     case "icos.f.3": return symIcosF3();
-    case "icos.f.c": return symIcosFC(geometry);
+    case "icos.f.c": return symIcosFC(mesh);
     case "icos.v.1": return symIcosV1();
     default:
       throw new Error(`symmetry not supported: ${sym}`);
@@ -121,7 +150,6 @@ function symmetry(geometry) {
 }
 
 function symIcosF1() {
-
   const meshes = meshList("I.f.1.", 20);
 
   for (let i = 0; i < 5; i++) {
@@ -171,8 +199,8 @@ function symIcosF3() {
   return meshes;
 }
 
-function symIcosFC(geometry) {
-  const [x, y, z] = geometry.positions;
+function symIcosFC(mesh) {
+  const [x, y, z] = mesh.positions;
 
   const pos = (t, r) => {
     const v = new Vector3(x(t), y(t), z(t));
@@ -182,12 +210,11 @@ function symIcosFC(geometry) {
 
   for (let i = 1; i < 3; i++) {
     'xyz'.split('').forEach(axis => {
-      geometry.positions.push(t => pos(t, i)[axis]);
-
+      mesh.positions.push(t => pos(t, i)[axis]);
     })
   }
 
-  geometry.indices = [0, 2, 1];
+  mesh.indices = [0, 2, 1];
 
   return symIcosF1();
 }
