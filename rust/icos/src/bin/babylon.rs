@@ -100,6 +100,39 @@ fn dodec_json() -> Json<Vec<Geometry>> {
     }])
 }
 
+#[get("/goldberg.2.0.json")]
+fn goldberg_2_0() -> Json<Vec<Geometry>> {
+    let t = Val::param(1);
+    let by = beta().mul(&t);
+
+    let fifth = Angle::turn().div(&5.into());
+    let tenth = Angle::turn().div(&10.into());
+
+    let o = Norm::zero().south(&beta()).east(&tenth);
+    let r_0 = Norm::zero().south(&by).east(&tenth);
+
+    Json(vec![
+        Geometry {
+            positions: xyz(((0 as i64)..5)
+                .into_iter()
+                .map(|i| r_0.clone().east(&fifth.clone().mul(&i.into())))
+                .collect()),
+            indices: vec![0, 1, 2, 2, 3, 0, 0, 3, 4],
+            symmetry: "icos.v.1".into(),
+        },
+        Geometry {
+            positions: xyz(vec![
+                r_0.clone(),
+                r_0.clone().east(&fifth),
+                o.clone(),
+                o.clone().east(&fifth),
+            ]),
+            indices: vec![1, 0, 2, 1, 2, 3],
+            symmetry: "icos.f.3".into(),
+        },
+    ])
+}
+
 #[get("/consts.json")]
 fn consts_json() -> Json<Consts> {
     let z = Norm::zero();
@@ -136,6 +169,12 @@ fn rocket() -> _ {
         .mount("/", FileServer::from(relative!("static")))
         .mount(
             "/geometry",
-            routes![icos_json, icos_trunc_json, dodec_json, consts_json],
+            routes![
+                icos_json,
+                icos_trunc_json,
+                dodec_json,
+                goldberg_2_0,
+                consts_json
+            ],
         )
 }

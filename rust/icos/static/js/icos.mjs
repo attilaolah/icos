@@ -59,7 +59,7 @@ async function draw(shape) {
     .forEach(elem => {
       elem.style.display = "none";
     })
-  document.body.querySelectorAll(`.params label.${shape.replace(".", "-")}`)
+  document.body.querySelectorAll(`.params label.${shape.replaceAll(".", "-")}`)
     .forEach(elem => {
       elem.style.display = "initial";
     })
