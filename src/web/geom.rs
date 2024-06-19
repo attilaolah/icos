@@ -12,8 +12,8 @@ pub struct Geometry {
 
 impl Geometry {
     pub fn goldberg_1_0() -> Vec<Self> {
-        let fifth = Angle::turn().div(&5.into());
-        let tenth = Angle::turn().div(&10.into());
+        let fifth = Angle::turn().idiv(5);
+        let tenth = Angle::turn().idiv(10);
 
         let top = Norm::zero();
 
@@ -24,7 +24,7 @@ impl Geometry {
                     top.clone()
                         .south(&beta())
                         .east(&tenth)
-                        .east(&fifth.clone().mul(&i.into()))
+                        .east(&fifth.clone().imul(i))
                 })
                 .collect()),
             indices: vec![0, 1, 2, 2, 3, 0, 0, 3, 4],
@@ -34,14 +34,14 @@ impl Geometry {
 
     pub fn goldberg_1_1() -> Vec<Self> {
         let t = Val::param(1);
-        let by = alpha().mul(&t).div(&2.into());
+        let by = alpha().mul(&t).idiv(2);
 
-        let fifth = Angle::turn().div(&5.into());
+        let fifth = Angle::turn().idiv(5);
 
         let top = Norm::zero();
         let pentagon = ((0 as i64)..5)
             .into_iter()
-            .map(|i| top.clone().south(&by).east(&fifth.clone().mul(&i.into())));
+            .map(|i| top.clone().south(&by).east(&fifth.clone().imul(i)));
 
         let r_0_0 = top.clone().south(&by);
         let r_0_1 = r_0_0.clone().east(&fifth);
@@ -70,8 +70,8 @@ impl Geometry {
         let t = Val::param(1);
         let by = beta().mul(&t);
 
-        let fifth = Angle::turn().div(&5.into());
-        let tenth = Angle::turn().div(&10.into());
+        let fifth = Angle::turn().idiv(5);
+        let tenth = Angle::turn().idiv(10);
 
         let o = Norm::zero().south(&beta()).east(&tenth);
         let r_0 = Norm::zero().south(&by).east(&tenth);
@@ -80,7 +80,7 @@ impl Geometry {
             Self {
                 positions: xyz(((0 as i64)..5)
                     .into_iter()
-                    .map(|i| r_0.clone().east(&fifth.clone().mul(&i.into())))
+                    .map(|i| r_0.clone().east(&fifth.clone().imul(i)))
                     .collect()),
                 indices: vec![0, 1, 2, 2, 3, 0, 0, 3, 4],
                 symmetry: "icos.v.1".into(),

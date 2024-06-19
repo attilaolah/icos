@@ -179,6 +179,23 @@ impl Val {
             _ => false,
         }
     }
+
+    // Shortcuts:
+    pub fn iadd(self, a: i64) -> Self {
+        self.add(&a.into())
+    }
+    pub fn isub(self, a: i64) -> Self {
+        self.sub(&a.into())
+    }
+    pub fn imul(self, a: i64) -> Self {
+        self.mul(&a.into())
+    }
+    pub fn idiv(self, a: i64) -> Self {
+        self.div(&a.into())
+    }
+    pub fn ipow(self, a: i64) -> Self {
+        self.pow(&a.into())
+    }
 }
 
 impl Angle {
@@ -221,7 +238,7 @@ impl Angle {
     }
 
     pub fn neg(self) -> Self {
-        self.mul(&(-1).into())
+        self.imul(-1)
     }
 
     pub fn mul(self, a: &Val) -> Self {
@@ -269,6 +286,14 @@ impl Angle {
             Self::Pi(x) => x.is_zero(),
             _ => false,
         }
+    }
+
+    // Shortcuts:
+    pub fn imul(self, a: i64) -> Self {
+        self.mul(&a.into())
+    }
+    pub fn idiv(self, a: i64) -> Self {
+        self.div(&a.into())
     }
 }
 

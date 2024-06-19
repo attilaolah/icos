@@ -20,7 +20,7 @@ impl Norm {
     }
 
     pub fn north(self, a: &Angle) -> Self {
-        self.south(&a.clone().mul(&(-1).into()))
+        self.south(&a.clone().neg())
     }
 
     pub fn south(self, a: &Angle) -> Self {
@@ -38,7 +38,7 @@ impl Norm {
     }
 
     pub fn west(self, a: &Angle) -> Self {
-        self.east(&a.clone().mul(&(-1).into()))
+        self.east(&a.clone().neg())
     }
 
     pub fn rot_x(self, a: &Angle) -> Self {
@@ -71,9 +71,9 @@ impl Norm {
     }
 
     pub fn distance_to(self, to: Self) -> Val {
-        let dx = to.x().sub(&self.x()).pow(&2.into());
-        let dy = to.y().sub(&self.y()).pow(&2.into());
-        let dz = to.z().sub(&self.z()).pow(&2.into());
+        let dx = to.x().sub(&self.x()).ipow(2);
+        let dy = to.y().sub(&self.y()).ipow(2);
+        let dz = to.z().sub(&self.z()).ipow(2);
         dx.add(&dy).add(&dz).sqrt()
     }
 
@@ -98,8 +98,8 @@ mod test {
 
     #[test]
     fn test_distance_to() {
-        let half_turn = Angle::turn().div(&2.into());
-        let quarter_turn = half_turn.clone().div(&2.into());
+        let half_turn = Angle::turn().idiv(2);
+        let quarter_turn = half_turn.clone().idiv(2);
 
         // Zero distance.
         assert_relative_eq!(
