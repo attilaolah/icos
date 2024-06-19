@@ -16,15 +16,17 @@ impl Geometry {
         let tenth = Angle::turn().div(&10.into());
 
         let top = Norm::zero();
-        let pentagon = ((0 as i64)..5).into_iter().map(|i| {
-            top.clone()
-                .south(&beta())
-                .east(&tenth)
-                .east(&fifth.clone().mul(&i.into()))
-        });
 
         vec![Self {
-            positions: xyz(pentagon.collect()),
+            positions: xyz(((0 as i64)..5)
+                .into_iter()
+                .map(|i| {
+                    top.clone()
+                        .south(&beta())
+                        .east(&tenth)
+                        .east(&fifth.clone().mul(&i.into()))
+                })
+                .collect()),
             indices: vec![0, 1, 2, 2, 3, 0, 0, 3, 4],
             symmetry: "icos.v.1".into(),
         }]
