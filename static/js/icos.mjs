@@ -1,5 +1,5 @@
 const { PI } = Math;
-const { ArcRotateCamera, Color4, Engine, HemisphericLight, Mesh, Quaternion, Scene, Space, Vector3, VertexData } = BABYLON;
+const { ArcRotateCamera, Color4, Engine, HemisphericLight, Mesh, MeshBuilder, Quaternion, Scene, Space, Vector3, VertexData } = BABYLON;
 const { WORLD } = Space;
 const { X, Y, R, O } = await consts();
 
@@ -85,11 +85,17 @@ async function draw(shape) {
         }
       });
 
-      if (update) {
-        update = false;
-        vd.positions = data.positions.map(fn => fn.apply(null, params));
-        meshes.forEach(m => vd.applyToMesh(m));
-      }
+      if (!update) return;
+      update = false;
+
+      vd.positions = data.positions.map(fn => fn.apply(null, params));
+      meshes.forEach(m => {
+        if (m.name.startsWith("dbg.")) {
+          m.position = pvec(vd.positions);
+        } else {
+          vd.applyToMesh(m);
+        }
+      });
     };
   });
 
@@ -145,8 +151,9 @@ function symmetry(mesh) {
     case "icos.f.3": return symIcosF3();
     case "icos.f.c": return symIcosFC(mesh);
     case "icos.v.1": return symIcosV1();
+    case "dbg": return symDbg();
     default:
-      throw new Error(`symmetry not supported: ${sym}`);
+      throw new Error(`symmetry not supported: ${mesh.symmetry}`);
   }
 }
 
@@ -241,8 +248,15 @@ function symIcosV1() {
   return meshes;
 }
 
+function symDbg() {
+  return [
+    MeshBuilder.CreateSphere(`dbg.${Math.random()}`, { diameter: 0.05 }),
+  ];
+}
+
+
 function meshList(prefix, count) {
   return Array(count)
     .fill()
-    .map((_, i) => new Mesh(`${prefix}${i}`, scene));
+    .map((_, i) => new Mesh(`${prefix}${i}`));
 }
