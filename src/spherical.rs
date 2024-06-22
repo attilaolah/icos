@@ -73,8 +73,9 @@ impl Norm {
             return self.clone();
         }
 
-        // The point to rotate:
-        let p = [Val::from(0), self.x(), self.y(), self.z()];
+        // The point to rotate.
+        // Note the negative z value, to preserve z-up axis.
+        let p = [Val::from(0), self.x(), self.y(), self.z().neg()];
 
         let sin = by.idiv(2).sin();
         // Te quaternion to rotate by:

@@ -85,7 +85,10 @@ impl Geometry {
         let r_0 = Norm::zero().south(&by).east(&tenth);
 
         // DBG: How to calculate this third point?
-        let dbg = r_0.rot(&o, &Angle::turn());
+        let dbg = Norm::zero().south(&Angle::turn().mul(&Val::param(2))).rot(
+            &Norm::zero().south(&Angle::part(4)).east(&Angle::part(5)),
+            &Angle::turn().mul(&Val::param(3)),
+        );
 
         Self {
             meshes: vec![
@@ -133,7 +136,7 @@ impl Geometry {
                     symmetry: "icos.f.3".into(),
                 },
             ],
-            params: vec!["0.5".into()],
+            params: vec!["0.42".into(), "0".into(), "0".into()],
         }
     }
 }

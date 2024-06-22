@@ -1,4 +1,4 @@
-use icos::{alpha, Angle, Norm, Val};
+use icos::{alpha, beta, Angle, Norm, Val};
 use num_traits::ToPrimitive;
 
 fn main() {
@@ -9,21 +9,23 @@ fn calculate() {
     let mut step = 1;
     let max_steps = 60;
 
-    let fifth_turn = Angle::turn().div(&5.into());
+    let fifth = Angle::part(5);
+    let tenth = Angle::part(10);
+
+    let o = Norm::zero().south(&beta()).east(&tenth);
 
     let mut t: Val = 1.into();
     let mut adjust = t.clone();
 
     loop {
-        let by = alpha().mul(&t).div(&2.into());
+        let by = beta().mul(&t);
 
-        let a = Norm::zero().south(&by);
-        let b = Norm::zero().south(&alpha()).north(&by);
-        let c = a.clone().east(&fifth_turn);
+        let a = Norm::zero().south(&by).east(&tenth);
+        let b = a.east(&fifth);
 
         let ab = a.clone().distance_to(b);
-        let ac = a.clone().distance_to(c);
-        let delta = ab.clone().sub(&ac);
+        let ac = a.clone().distance_to(o.clone());
+        let delta = ac.clone().sub(&ab);
 
         println!(
             "{:0.16}: {:0.16} - {:0.16} = {:+0.16}",
