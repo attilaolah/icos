@@ -15,12 +15,16 @@ async function consts() {
     ]));
 }
 
-function pfun(pos) {
-  return new Function("t_1", `with (Math) return (${pos});`);
+function pfun(pos, params) {
+  return new Function(...
+    Array(params)
+      .fill()
+      .map((_, i) => `t_${i + 1}`)
+      .concat(`with (Math) return (${pos});`));
 }
 
 function pval(pos) {
-  return pfun(pos)();
+  return pfun(pos, 0)();
 }
 
 function pvec(xyz) {
@@ -67,14 +71,14 @@ async function draw(shape) {
 
   const geometry = await (await req).json();
   const updates = geometry.meshes.map(data => {
-    data.positions = data.positions.map(pfun);
+    let params = geometry.params.map(pval);
+    data.positions = data.positions.map(pos => pfun(pos, params.length));
     const meshes = symmetry(data);
 
     const vd = new VertexData();
     vd.indices = data.indices;
 
     let update = true;
-    let params = geometry.params.map(pval);
     return () => {
       params.forEach((t, i) => {
         const newt = parseFloat(document.getElementById(`t${i}`).value);
