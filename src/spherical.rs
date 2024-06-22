@@ -41,32 +41,97 @@ impl Norm {
         self.east(&a.clone().neg())
     }
 
-    pub fn rot_x(self, a: &Angle) -> Self {
+    pub fn rot_x(&self, by: &Angle) -> Self {
         Self {
             theta: self
                 .theta
-                .clone()
                 .sin()
-                .mul(&self.phi.clone().sin())
-                .mul(&a.clone().sin())
-                .add(&self.theta.clone().cos().mul(&a.clone().cos()))
+                .mul(&self.phi.sin())
+                .mul(&by.sin())
+                .add(&self.theta.cos().mul(&by.cos()))
                 .acos(),
             phi: self
                 .phi
-                .clone()
                 .tan()
                 .mul(
-                    &a.clone().cos().sub(
+                    &by.cos().sub(
                         &self
                             .phi
-                            .clone()
                             .tan()
                             .rec()
-                            .mul(&a.clone().sin())
-                            .mul(&self.phi.clone().cos().rec()),
+                            .mul(&by.sin())
+                            .mul(&self.phi.cos().rec()),
                     ),
                 )
                 .atan(),
+        }
+    }
+
+    /// Rotate using quaternion multiplications.
+    pub fn rot(&self, axis: &Self, by: &Angle) -> Self {
+        if by.is_zero() {
+            return self.clone();
+        }
+
+        // The point to rotate:
+        let p = [Val::from(0), self.x(), self.y(), self.z()];
+
+        let sin = by.idiv(2).sin();
+        // Te quaternion to rotate by:
+        let q = [
+            by.idiv(2).cos(),
+            axis.x().mul(&sin),
+            axis.y().mul(&sin),
+            axis.z().mul(&sin),
+        ];
+        // The inverse of the rotation quaternion:
+        let qn = [q[0].clone(), q[1].neg(), q[2].neg(), q[3].neg()];
+
+        // Result of multiplying q with p (considering p[0] == 0):
+        let qp = [
+            (q[1].mul(&p[1]).neg())
+                .sub(&q[2].mul(&p[2]))
+                .sub(&q[3].mul(&p[3])),
+            q[0].mul(&p[1]).sub(&q[2].mul(&p[3])).add(&q[3].mul(&p[2])),
+            q[0].mul(&p[2]).add(&q[1].mul(&p[3])).sub(&q[3].mul(&p[1])),
+            q[0].mul(&p[3]).sub(&q[1].mul(&p[2])).add(&q[2].mul(&p[1])),
+        ];
+
+        // Result of multiplying qp with pn:
+        let qpqn = [
+            Val::from(0),
+            // I.e. the result of:
+            // (qp[0].mul(&qn[0]))
+            //     .sub(&qp[1].mul(&qn[1]))
+            //     .sub(&qp[2].mul(&qn[2]))
+            //     .sub(&qp[3].mul(&qn[3])),
+            (qp[0].mul(&qn[1]))
+                .add(&qp[1].mul(&qn[0]))
+                .sub(&qp[2].mul(&qn[3]))
+                .add(&qp[3].mul(&qn[2])),
+            (qp[0].mul(&qn[2]))
+                .add(&qp[1].mul(&qn[3]))
+                .add(&qp[2].mul(&qn[0]))
+                .sub(&qp[3].mul(&qn[1])),
+            (qp[0].mul(&qn[3]))
+                .add(&qp[1].mul(&qn[2]))
+                .add(&qp[2].mul(&qn[1]))
+                .sub(&qp[3].mul(&qn[0])),
+        ];
+
+        // Convert back to axis-angle:
+        Self {
+            theta: qpqn[3]
+                .div(
+                    &(qpqn[1].ipow(2))
+                        .add(&qpqn[2].ipow(2))
+                        .add(&qpqn[3].ipow(2))
+                        .sqrt(),
+                )
+                .acos(),
+            phi: qpqn[1]
+                .div(&(qpqn[1].ipow(2)).add(&qpqn[2].ipow(2)).sqrt())
+                .acos(),
         }
     }
 
@@ -78,15 +143,15 @@ impl Norm {
     }
 
     pub fn x(&self) -> Val {
-        self.theta.clone().sin().mul(&self.phi.clone().cos())
+        self.theta.sin().mul(&self.phi.cos())
     }
 
     pub fn y(&self) -> Val {
-        self.theta.clone().sin().mul(&self.phi.clone().sin())
+        self.theta.sin().mul(&self.phi.sin())
     }
 
     pub fn z(&self) -> Val {
-        self.theta.clone().cos()
+        self.theta.cos()
     }
 }
 

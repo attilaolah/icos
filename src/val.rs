@@ -166,7 +166,7 @@ impl Val {
         }
     }
 
-    fn is_zero(&self) -> bool {
+    pub fn is_zero(&self) -> bool {
         match self {
             Self::Int(x) => x.is_zero(),
             _ => false,
@@ -286,7 +286,7 @@ impl Angle {
 
     /// Checks if this angle is the literal zero angle.
     /// Currently doesn't return true for e.g. 2n*pi for all integer n.
-    fn is_zero(&self) -> bool {
+    pub fn is_zero(&self) -> bool {
         match self {
             Self::Pi(x) => x.is_zero(),
             _ => false,
