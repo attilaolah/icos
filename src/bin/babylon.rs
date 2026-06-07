@@ -27,6 +27,11 @@ fn goldberg_2_0_json() -> Json<Geometry> {
     Json(Geometry::goldberg_2_0())
 }
 
+#[get("/goldberg.2.2.json")]
+fn goldberg_2_2_json() -> Json<Geometry> {
+    Json(Geometry::goldberg_2_2())
+}
+
 #[launch]
 fn rocket() -> _ {
     rocket::build()
@@ -38,6 +43,7 @@ fn rocket() -> _ {
                 goldberg_1_0_json,
                 goldberg_1_1_json,
                 goldberg_2_0_json,
+                goldberg_2_2_json,
             ],
         )
 }

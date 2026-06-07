@@ -108,4 +108,25 @@ impl Geometry {
             params: vec!["0.42".into()],
         }
     }
+
+    pub fn goldberg_2_2() -> Self {
+        let t = Val::param(1);
+        let by = alpha().mul(&t).idiv(2);
+
+        let fifth = Angle::turn().idiv(5);
+        let top = Norm::zero();
+
+        Self {
+            meshes: vec![Mesh {
+                positions: xyz(((0 as i64)..5)
+                    .into_iter()
+                    .map(|i| top.south(&by).east(&fifth.imul(i)))
+                    .collect()),
+                indices: vec![0, 1, 2, 2, 3, 0, 0, 3, 4],
+                symmetry: "icos.v.1".into(),
+            }],
+            // Temporary default for development; expected to be tuned.
+            params: vec!["0.42".into()],
+        }
+    }
 }
