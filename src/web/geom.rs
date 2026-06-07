@@ -84,39 +84,8 @@ impl Geometry {
         let o = Norm::zero().south(&beta()).east(&tenth);
         let r_0 = Norm::zero().south(&by).east(&tenth);
 
-        // DBG: How to calculate this third point?
-        let dbg = Norm::zero().south(&Angle::turn().mul(&Val::param(2))).rot(
-            &Norm::zero().south(&Angle::part(4)).east(&Angle::part(5)),
-            &Angle::turn().mul(&Val::param(3)),
-        );
-
         Self {
             meshes: vec![
-                Mesh {
-                    positions: xyz(vec![r_0.clone()]),
-                    indices: vec![],
-                    symmetry: "dbg".into(),
-                },
-                Mesh {
-                    positions: xyz(vec![r_0.east(&fifth)]),
-                    indices: vec![],
-                    symmetry: "dbg".into(),
-                },
-                Mesh {
-                    positions: xyz(vec![o.clone()]),
-                    indices: vec![],
-                    symmetry: "dbg".into(),
-                },
-                Mesh {
-                    positions: xyz(vec![o.east(&fifth)]),
-                    indices: vec![],
-                    symmetry: "dbg".into(),
-                },
-                Mesh {
-                    positions: xyz(vec![dbg]),
-                    indices: vec![],
-                    symmetry: "dbg".into(),
-                },
                 Mesh {
                     positions: xyz(((0 as i64)..5)
                         .into_iter()
@@ -136,7 +105,7 @@ impl Geometry {
                     symmetry: "icos.f.3".into(),
                 },
             ],
-            params: vec!["0.42".into(), "0".into(), "0".into()],
+            params: vec!["0.42".into()],
         }
     }
 }

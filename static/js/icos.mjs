@@ -94,11 +94,7 @@ async function draw(shape) {
 
       vd.positions = data.positions.map(fn => fn.apply(null, params));
       meshes.forEach(m => {
-        if (m.name.startsWith("dbg.")) {
-          m.position = pvec(vd.positions);
-        } else {
-          vd.applyToMesh(m);
-        }
+        vd.applyToMesh(m);
       });
     };
   });
@@ -155,7 +151,6 @@ function symmetry(mesh) {
     case "icos.f.3": return symIcosF3();
     case "icos.f.c": return symIcosFC(mesh);
     case "icos.v.1": return symIcosV1();
-    case "dbg": return symDbg();
     default:
       throw new Error(`symmetry not supported: ${mesh.symmetry}`);
   }
@@ -252,11 +247,7 @@ function symIcosV1() {
   return meshes;
 }
 
-function symDbg() {
-  return [
-    MeshBuilder.CreateSphere(`dbg.${Math.random()}`, { diameter: 0.05 }),
-  ];
-}
+
 
 
 function meshList(prefix, count) {
