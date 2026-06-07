@@ -110,23 +110,75 @@ impl Geometry {
     }
 
     pub fn goldberg_2_2() -> Self {
-        let t = Val::param(1);
-        let by = alpha().mul(&t).idiv(2);
+        let t1 = Val::param(1);
+        let t2 = Val::param(2);
+        let t3 = Val::param(3);
+        let t4 = Val::param(4);
+
+        let by = alpha().mul(&t1).idiv(2);
+        let mid = alpha().idiv(2);
+        // Second pair slides from the pentagon edge (by) to the icosahedral midpoint (alpha/2).
+        let by_1 = by.add(&mid.sub(&by).mul(&t2));
 
         let fifth = Angle::turn().idiv(5);
         let top = Norm::zero();
+        let pentagon = ((0 as i64)..5)
+            .into_iter()
+            .map(|i| top.south(&by).east(&fifth.imul(i)));
+
+        let r_0_0 = top.south(&by);
+        let r_0_1 = r_0_0.east(&fifth);
+        let r_1_0 = top.south(&by_1);
+        let r_1_1 = r_1_0.east(&fifth);
+
+        // Temporary stub for the third pair: direct spherical coordinates in [0, pi].
+        let theta_2 = t3.pi();
+        let phi_2_0 = t4.pi();
+        let phi_2_1 = fifth.sub(&phi_2_0);
+        let r_2_0 = Norm::zero().south(&theta_2).east(&phi_2_0);
+        let r_2_1 = Norm::zero().south(&theta_2).east(&phi_2_1);
 
         Self {
-            meshes: vec![Mesh {
-                positions: xyz(((0 as i64)..5)
-                    .into_iter()
-                    .map(|i| top.south(&by).east(&fifth.imul(i)))
-                    .collect()),
-                indices: vec![0, 1, 2, 2, 3, 0, 0, 3, 4],
-                symmetry: "icos.v.1".into(),
-            }],
+            meshes: vec![
+                Mesh {
+                    positions: xyz(pentagon.collect()),
+                    indices: vec![0, 1, 2, 2, 3, 0, 0, 3, 4],
+                    symmetry: "icos.v.1".into(),
+                },
+                // First hexagonal face scaffold:
+                // one seed outer triangle, rotated 3x via `icos.f.3`.
+                Mesh {
+                    positions: xyz(vec![r_0_0.clone(), r_0_1.clone(), r_1_0.clone()]),
+                    indices: vec![0, 2, 1],
+                    symmetry: "icos.f.3".into(),
+                },
+                // Another outer-triangle seed in the same local face, rotated 3x via `icos.f.3`.
+                Mesh {
+                    positions: xyz(vec![r_0_1.clone(), r_1_0.clone(), r_2_0.clone()]),
+                    indices: vec![0, 1, 2],
+                    symmetry: "icos.f.3".into(),
+                },
+                // Third outer-triangle seed, added on top of the existing scaffold.
+                Mesh {
+                    positions: xyz(vec![r_0_1, r_2_0.clone(), r_1_1]),
+                    indices: vec![0, 1, 2],
+                    symmetry: "icos.f.3".into(),
+                },
+                // Fourth outer-triangle seed: F-D-E.
+                Mesh {
+                    positions: xyz(vec![r_1_0, r_2_0.clone(), r_2_1.clone()]),
+                    indices: vec![0, 2, 1],
+                    symmetry: "icos.f.3".into(),
+                },
+                // one seed inner triangle, rotated from a single point via `icos.f.c`.
+                Mesh {
+                    positions: xyz(vec![r_2_0]),
+                    indices: vec![],
+                    symmetry: "icos.f.c".into(),
+                },
+            ],
             // Temporary default for development; expected to be tuned.
-            params: vec!["0.42".into()],
+            params: vec!["0.27".into(), "0.45".into(), "0.14".into(), "0.26".into()],
         }
     }
 }

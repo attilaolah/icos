@@ -1,7 +1,7 @@
 import { computeHexFaceEdgeMetrics } from "./measurements/edge-cv.mjs";
 
 const { PI } = Math;
-const { ArcRotateCamera, Color4, Engine, HemisphericLight, Mesh, MeshBuilder, Quaternion, Scene, Space, Vector3, VertexData } = BABYLON;
+const { ArcRotateCamera, Color3, Color4, Engine, HemisphericLight, Mesh, MeshBuilder, Quaternion, Scene, Space, StandardMaterial, Vector3, VertexData } = BABYLON;
 const { WORLD } = Space;
 const { X, Y, R, O } = await consts();
 
@@ -139,6 +139,12 @@ async function draw(shape) {
   const measurementsVisible = shape === "goldberg.1.1";
   let measurementDirty = true;
   measurementsSection.hidden = !measurementsVisible;
+  const updateMarkers = setupGoldberg22PointMarkers({
+    shape,
+    scene,
+    meshData,
+    params: paramsState,
+  });
 
   engine.runRenderLoop(() => {
     let paramsChanged = false;
@@ -154,6 +160,7 @@ async function draw(shape) {
     });
 
     updates.forEach(fn => fn(paramsChanged));
+    updateMarkers(paramsChanged);
     if (paramsChanged) measurementDirty = true;
     if (measurementDirty) {
       measurementDirty = false;
@@ -206,6 +213,74 @@ function updateMeasurements({ measurementsVisible, cvValue, mmValue, cvMeshF3, c
 
   cvValue.innerText = cv.toFixed(6);
   mmValue.innerText = mm.toFixed(6);
+}
+
+function setupGoldberg22PointMarkers({ shape, scene, meshData, params }) {
+  if (shape !== "goldberg.2.2") return () => {};
+
+  const localOuterSeeds = meshData.filter(mesh =>
+    mesh.symmetry === "icos.f.3" && mesh.indices.length === 3 && mesh.positions.length === 9);
+  if (localOuterSeeds.length < 3) return () => {};
+
+  const [seedABF, seedBFC, seedBCD] = localOuterSeeds;
+  const radius = 0.0175;
+  const defs = [
+    { label: "A", color: new Color3(1.0, 0.2, 0.2) },
+    { label: "B", color: new Color3(1.0, 0.55, 0.2) },
+    { label: "C", color: new Color3(1.0, 0.9, 0.2) },
+    { label: "D", color: new Color3(0.2, 0.9, 0.2) },
+    { label: "E", color: new Color3(0.2, 0.8, 1.0) },
+    { label: "F", color: new Color3(0.8, 0.3, 1.0) },
+  ];
+
+  const spheres = defs.map(def => {
+    const sphere = MeshBuilder.CreateSphere(`dbg.hex.${def.label}`, { diameter: radius * 2 }, scene);
+    const mat = new StandardMaterial(`dbg.hex.${def.label}.mat`, scene);
+    mat.diffuseColor = def.color;
+    mat.emissiveColor = def.color.scale(0.45);
+    sphere.material = mat;
+    return sphere;
+  });
+
+  const evalVertex = (mesh, vertex) => {
+    const i = vertex * 3;
+    return new Vector3(
+      mesh.positions[i].apply(null, params),
+      mesh.positions[i + 1].apply(null, params),
+      mesh.positions[i + 2].apply(null, params),
+    );
+  };
+
+  const pointFromNormSpherical = (thetaPi, phiPi) => {
+    const theta = thetaPi * PI;
+    const phi = phiPi * PI;
+    const sinTheta = Math.sin(theta);
+    return new Vector3(
+      sinTheta * Math.cos(phi),
+      Math.cos(theta),
+      sinTheta * Math.sin(phi),
+    );
+  };
+
+  const update = () => {
+    const a = evalVertex(seedABF, 0);
+    const b = evalVertex(seedABF, 1);
+    const f = evalVertex(seedABF, 2);
+
+    const c = evalVertex(seedBCD, 2);
+    const d = evalVertex(seedBFC, 2);
+    const e = pointFromNormSpherical(params[2], 2 / 5 - params[3]);
+
+    [a, b, c, d, e, f].forEach((point, i) => {
+      spheres[i].position.copyFrom(point);
+    });
+  };
+
+  update();
+  return paramsChanged => {
+    if (!paramsChanged) return;
+    update();
+  };
 }
 
 const shape = document.getElementById("shape");
