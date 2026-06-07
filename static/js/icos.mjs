@@ -67,6 +67,7 @@ async function draw(shape) {
   camera.setPosition(new Vector3(0, 2, -4));
   camera.lowerRadiusLimit = 2;
   camera.upperRadiusLimit = 20;
+  camera.wheelPrecision = 12; // Decrease zoom speed (1/4 as sensitive)
   camera.attachControl(canvas, true);
 
   const geometry = await (await req).json();
