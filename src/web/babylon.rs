@@ -1,4 +1,4 @@
-use crate::{alpha, Angle, Norm};
+use crate::{alpha, Angle, Norm, Val};
 use rocket::serde::Serialize;
 
 #[derive(Serialize)]
@@ -37,6 +37,16 @@ pub fn xyz(points: Vec<Norm>) -> Vec<String> {
         .into_iter()
         // BABYLON is Y-up left-handed.
         .map(|n| [n.x(), n.z(), n.y()])
+        .flatten()
+        .map(|v| format!("{}", v))
+        .collect()
+}
+
+pub fn xyzv(points: Vec<[Val; 3]>) -> Vec<String> {
+    points
+        .into_iter()
+        // BABYLON is Y-up left-handed.
+        .map(|p| [p[0].clone(), p[2].clone(), p[1].clone()])
         .flatten()
         .map(|v| format!("{}", v))
         .collect()
