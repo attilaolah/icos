@@ -220,9 +220,9 @@ function setupGoldberg22PointMarkers({ shape, scene, meshData, params }) {
 
   const localOuterSeeds = meshData.filter(mesh =>
     mesh.symmetry === "icos.f.3" && mesh.indices.length === 3 && mesh.positions.length === 9);
-  if (localOuterSeeds.length < 3) return () => {};
+  if (localOuterSeeds.length < 4) return () => {};
 
-  const [seedABF, seedBFC, seedBCD] = localOuterSeeds;
+  const [seedABF, seedBFC, seedBCD, seedFDE] = localOuterSeeds;
   const radius = 0.0175;
   const defs = [
     { label: "A", color: new Color3(1.0, 0.2, 0.2) },
@@ -251,17 +251,6 @@ function setupGoldberg22PointMarkers({ shape, scene, meshData, params }) {
     );
   };
 
-  const pointFromNormSpherical = (thetaPi, phiPi) => {
-    const theta = thetaPi * PI;
-    const phi = phiPi * PI;
-    const sinTheta = Math.sin(theta);
-    return new Vector3(
-      sinTheta * Math.cos(phi),
-      Math.cos(theta),
-      sinTheta * Math.sin(phi),
-    );
-  };
-
   const update = () => {
     const a = evalVertex(seedABF, 0);
     const b = evalVertex(seedABF, 1);
@@ -269,7 +258,7 @@ function setupGoldberg22PointMarkers({ shape, scene, meshData, params }) {
 
     const c = evalVertex(seedBCD, 2);
     const d = evalVertex(seedBFC, 2);
-    const e = pointFromNormSpherical(params[2], 2 / 5 - params[3]);
+    const e = evalVertex(seedFDE, 2);
 
     [a, b, c, d, e, f].forEach((point, i) => {
       spheres[i].position.copyFrom(point);

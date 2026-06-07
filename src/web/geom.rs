@@ -131,8 +131,10 @@ impl Geometry {
         let r_1_0 = top.south(&by_1);
         let r_1_1 = r_1_0.east(&fifth);
 
-        // Temporary stub for the third pair: direct spherical coordinates in [0, pi].
-        let theta_2 = t3.pi();
+        // Third pair latitude is constrained:
+        // t3=0  => same polar distance as C/F (by_1)
+        // t3=1  => icosahedral face-center latitude (beta)
+        let theta_2 = by_1.add(&beta().sub(&by_1).mul(&t3));
         let phi_2_0 = t4.pi();
         let phi_2_1 = fifth.sub(&phi_2_0);
         let r_2_0 = Norm::zero().south(&theta_2).east(&phi_2_0);
