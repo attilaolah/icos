@@ -1,4 +1,4 @@
-# Icos
+# Icosahedra
 
 An interactive visualizer for Goldberg polyhedra on the sphere, exploring degrees of freedom under strict symmetry and
 geometric constraints.
@@ -24,8 +24,14 @@ equality (equilateral faces) and face planarity.
 - **(2, 0) Goldberg**: Has 1 degree of freedom ($t_1$). Setting it to `~0.42` results in an equilateral, planar,
   on-sphere Goldberg polyhedron.
 
+## Note on AI usage
+
+- Anything from 2024 and before is painstakingly hand-crafted.
+- Commits from 2026 and later (yes there was an almost two year gap) are mostly AI-assisted.
+
 ---
 
 ## TODO / Next Steps
 
 - [ ] **Implement Goldberg (2, 2) Subdivision**.
+- [ ] **Implement Goldberg (4, 4) Subdivision**.
