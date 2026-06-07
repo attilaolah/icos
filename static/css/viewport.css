@@ -26,6 +26,19 @@ body {
 }
 
 .panel-left,
-.panel-left h2 {
+.panel-left h2,
+.panel-left h3 {
   font-family: monospace;
+}
+
+.panel-left .measurements {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.25rem 1rem;
+  margin: 0;
+}
+
+.panel-left .measurements dt,
+.panel-left .measurements dd {
+  margin: 0;
 }

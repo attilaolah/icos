@@ -1,3 +1,5 @@
+import { computeHexFaceEdgeMetrics } from "./measurements/edge-cv.mjs";
+
 const { PI } = Math;
 const { ArcRotateCamera, Color4, Engine, HemisphericLight, Mesh, MeshBuilder, Quaternion, Scene, Space, Vector3, VertexData } = BABYLON;
 const { WORLD } = Space;
@@ -71,38 +73,34 @@ async function draw(shape) {
   camera.attachControl(canvas, true);
 
   const geometry = await (await req).json();
-  const updates = geometry.meshes.map(data => {
-    let params = geometry.params.map(pval);
-    data.positions = data.positions.map(pos => pfun(pos, params.length));
+  const paramsState = geometry.params.map(pval);
+  const meshData = geometry.meshes.map(data => ({
+    ...data,
+    positions: data.positions.map(pos => pfun(pos, paramsState.length)),
+  }));
+
+  const updates = meshData.map(data => {
     const meshes = symmetry(data);
 
     const vd = new VertexData();
     vd.indices = data.indices;
 
-    let update = true;
-    return () => {
-      params.forEach((t, i) => {
-        const newt = parseFloat(document.getElementById(`t${i}`).value);
-        if (newt !== t) {
-          document.querySelector(`output[for=t${i}]`).value = newt.toFixed(2);
-          params[i] = newt;
-          update = true;
-        }
-      });
+    let dirty = true;
+    return paramsChanged => {
+      if (paramsChanged) dirty = true;
+      if (!dirty) return;
+      dirty = false;
 
-      if (!update) return;
-      update = false;
-
-      vd.positions = data.positions.map(fn => fn.apply(null, params));
+      vd.positions = data.positions.map(fn => fn.apply(null, paramsState));
       meshes.forEach(m => {
         vd.applyToMesh(m);
       });
     };
   });
 
-  const params = document.body.querySelector(".params");
-  Array.from(params.children).forEach(elem => elem.remove());
-  params.append(...geometry.params.map((t, i) => {
+  const paramsContainer = document.body.querySelector(".params");
+  Array.from(paramsContainer.children).forEach(elem => elem.remove());
+  const controls = geometry.params.map((t, i) => {
     const sub = document.createElement("sub");
     sub.innerText = i + 1;
 
@@ -129,17 +127,85 @@ async function draw(shape) {
     const label = document.createElement("label");
     label.append(em, " = ", output, input);
 
-    return label;
-  }));
+    return { label, input, output };
+  });
+  paramsContainer.append(...controls.map(control => control.label));
+
+  const measurementsSection = document.getElementById("measurements-section");
+  const cvValue = document.getElementById("measurement-e-cv");
+  const mmValue = document.getElementById("measurement-e-mm");
+  const cvMeshF3 = meshData.find(mesh => mesh.symmetry === "icos.f.3");
+  const cvMeshFC = meshData.find(mesh => mesh.symmetry === "icos.f.c");
+  const measurementsVisible = shape === "goldberg.1.1";
+  let measurementDirty = true;
+  measurementsSection.hidden = !measurementsVisible;
 
   engine.runRenderLoop(() => {
-    updates.forEach(fn => fn());
+    let paramsChanged = false;
+
+    controls.forEach((control, i) => {
+      const current = paramsState[i];
+      const next = parseFloat(control.input.value);
+      if (next !== current) {
+        paramsState[i] = next;
+        control.output.value = next.toFixed(2);
+        paramsChanged = true;
+      }
+    });
+
+    updates.forEach(fn => fn(paramsChanged));
+    if (paramsChanged) measurementDirty = true;
+    if (measurementDirty) {
+      measurementDirty = false;
+      updateMeasurements({
+        measurementsVisible,
+        cvValue,
+        mmValue,
+        cvMeshF3,
+        cvMeshFC,
+        params: paramsState,
+        shape,
+      });
+    }
+
     scene.render();
   });
 
   resize = window.addEventListener("resize", function() {
     engine.resize();
   });
+}
+
+function updateMeasurements({ measurementsVisible, cvValue, mmValue, cvMeshF3, cvMeshFC, params, shape }) {
+  if (!measurementsVisible) {
+    cvValue.innerText = "0.000000";
+    mmValue.innerText = "0.000000";
+    return;
+  }
+
+  if (shape !== "goldberg.1.1") {
+    cvValue.innerText = "0.000000";
+    mmValue.innerText = "0.000000";
+    return;
+  }
+
+  const { cv, mm } = computeHexFaceEdgeMetrics({
+    meshF3: cvMeshF3,
+    meshFC: cvMeshFC,
+    params,
+    axis: O,
+    Quaternion,
+    Vector3,
+  });
+
+  if (cv === null) {
+    cvValue.innerText = "0.000000";
+    mmValue.innerText = "0.000000";
+    return;
+  }
+
+  cvValue.innerText = cv.toFixed(6);
+  mmValue.innerText = mm.toFixed(6);
 }
 
 const shape = document.getElementById("shape");
