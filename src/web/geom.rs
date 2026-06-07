@@ -135,7 +135,11 @@ impl Geometry {
         // t3=0  => same polar distance as C/F (by_1)
         // t3=1  => icosahedral face-center latitude (beta)
         let theta_2 = by_1.add(&beta().sub(&by_1).mul(&t3));
-        let phi_2_0 = t4.pi();
+        // Third-pair azimuth is constrained within one icosahedral face:
+        // t4=0  => face-center meridian (fifth/2)
+        // t4=1  => C meridian (fifth)
+        // Therefore: E <= face-center <= D <= C.
+        let phi_2_0 = fifth.idiv(2).add(&fifth.idiv(2).mul(&t4));
         let phi_2_1 = fifth.sub(&phi_2_0);
         let r_2_0 = Norm::zero().south(&theta_2).east(&phi_2_0);
         let r_2_1 = Norm::zero().south(&theta_2).east(&phi_2_1);
